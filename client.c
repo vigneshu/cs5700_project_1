@@ -10,6 +10,8 @@
 #include <arpa/inet.h>
 #define MAX_BUFFER 256
 
+
+//connects to the serve, given hostname and port
 int connect_server(char *host_name, int port) {
 	struct sockaddr_in addr;
 	int fd;
@@ -20,7 +22,7 @@ int connect_server(char *host_name, int port) {
 	  return -1;
 	}
 	struct hostent *host;
-	if ((host = gethostbyname(host_name)) == NULL) {  // get the host info
+	if ((host = gethostbyname(host_name)) == NULL) {  // get the host info from host name
         printf("gethostbynamesss");
         return -1;
     }
@@ -30,13 +32,15 @@ int connect_server(char *host_name, int port) {
 	addr.sin_port =  htons(port);       
 	addr.sin_addr.s_addr = 
         *(long*)addr_list[0]; 
-    if (!connect(fd, (const struct sockaddr* )&addr, sizeof(addr)) == -1) {
+    if (!connect(fd, (const struct sockaddr* )&addr, sizeof(addr)) == -1) {// connect to server
 		perror("could not connect to host");
         return -1;
     }
     return fd;
 }
 
+
+//parses the message from the server, adds them up and sendss back the solution
 int parse_msg(char *buf, int fd) {
 	char solution[100];
 	char *token, *third_word;
@@ -44,40 +48,42 @@ int parse_msg(char *buf, int fd) {
 	token = strtok(NULL, " "); // second word
 	third_word = strtok(NULL, " "); // third word
 	if (strcmp(token, "STATUS") == 0) {
-	char *num1, *operator, *num2;
-	num1 = third_word;
-	operator = strtok(NULL, " "); 
-	num2 = strtok(NULL, " "); 
-	int num1_int = atoi(num1);
-	int num2_int = atoi(num2);
-	int ans;
-	if (operator[0] == '+') {
-	  ans = num1_int + num2_int;
-	} else if (operator[0] == '-') {
-	  ans = num1_int - num2_int;
-	} else if (operator[0] == '*') {
-	  ans = num1_int * num2_int; 
-	} else if (operator[0] == '/') {
-	  ans = num1_int / num2_int;
-	}
-	sprintf(solution, "cs5700fall2017 %d\n", ans);
-
-	if (send(fd, solution, strlen(solution), 0) == -1) {
-	  printf("failed to send solution to server\n");
-	  exit(1);
-	}
-	return 0;
+		char *num1, *operator, *num2;
+		num1 = third_word;
+		operator = strtok(NULL, " "); 
+		num2 = strtok(NULL, " "); 
+		int num1_int = atoi(num1);
+		int num2_int = atoi(num2);
+		int ans;
+		if (operator[0] == '+') {
+		  ans = num1_int + num2_int;
+		} else if (operator[0] == '-') {
+		  ans = num1_int - num2_int;
+		} else if (operator[0] == '*') {
+		  ans = num1_int * num2_int; 
+		} else if (operator[0] == '/') {
+		  ans = num1_int / num2_int;
+		}
+		sprintf(solution, "cs5700fall2017 %d\n", ans);
+		
+		if (send(fd, solution, strlen(solution), 0) == -1) {
+		  printf("failed to send solution to server\n");
+		  exit(1);
+		}
+		return 0;
 	} 
 	else if (strcmp(third_word , "BYE\n") == 0) {
-	printf("Token from server : %s\n", token);
-	return 1;
+		printf("Token from server : %s\n", token);
+		return 1;
 	}
 	else{
 		printf("Unknown message from server : %s\n", buf);
+		exit(1);
 		return 0;
 	}
 }
 
+// Sends hello message to sever, starting the communication
 void start_communication(int fd, char NUID[]) {
 	char buffer[MAX_BUFFER];
 	char hello_msg[50] = "cs5700fall2017 HELLO ";
@@ -114,11 +120,17 @@ int main(int argc, char* argv[]) {
 	int port = PORT;
 	char hostname[50];
 	char NUID[20];
+	 if (argc != 3 && argc != 5) {
+    	printf("please follow the format : %s [hostname] [NEU ID]\n", argv[0]);
+    	exit(1);
+  	}
  	if (argc == 5) {
 		port = atoi(argv[2]);
 		memcpy(hostname, argv[3], strlen(argv[3]));
-		memcpy(NUID, argv[4], strlen(argv[4]));
 		hostname[strlen(argv[3])] = '\0';
+		
+		memcpy(NUID, argv[4], strlen(argv[4]));
+		NUID[strlen(argv[4])] = '\0';
  	}
  	else{
  		memcpy(hostname, argv[1], strlen(argv[1]));

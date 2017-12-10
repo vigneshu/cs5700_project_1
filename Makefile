@@ -1,10 +1,10 @@
 default: all
 
-all: client.o
-
+all: client.o sever.o
 client.o:
-	gcc -o client client.c
-
+	gcc -pthread -o client client.c 
+sever.o:
+	gcc -pthread -o server server.c 
 
 clean:
 	rm -rf *.o
