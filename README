@@ -53,6 +53,6 @@ Botht nuid.txt and flag.txt should be in the current folder. I have submitted th
  ./client -p 27890  localhost 001627557
 
  (OR)
- 
+
  ./server -p 27890 localhost "nuid.txt" "flag.txt" 
- ./client "ushanka.ccs.neu.edu" 001627557
+ ./client -p 27890 "ushanka.ccs.neu.edu" 001627557
